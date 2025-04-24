@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bernabaris.repsyapp.service.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -101,10 +103,18 @@ public class PackageController {
                                              @PathVariable String version,
                                              @PathVariable String fileName) throws IOException {
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", fileName));
+        headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
         MultipartFile file = storageService.readFile(packageName,version,fileName);
-
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM).body(file);
-
+        ByteArrayResource resource = new ByteArrayResource(file.getBytes());
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentLength(file.getSize())
+                .contentType(MediaType.parseMediaType(file.getContentType()))
+                .body(resource);
     }
 
 

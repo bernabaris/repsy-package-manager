@@ -1,5 +1,6 @@
 package com.github.bernabaris.repsyapp.service;
 
+import com.github.bernabaris.repsyapp.util.CustomMultipartFile;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @Service
 @ConditionalOnProperty(value="storage.strategy", havingValue = "file-system")
@@ -53,6 +56,21 @@ public class FileSystemService implements StorageService{
 
     @Override
     public MultipartFile readFile(String packageName, String version, String fileName) {
-        return null;
+        try {
+            String filePath = String.format("%s/%s/%s/%s/%s",
+                    storageDirectory, REPO_FOLDER_NAME, packageName, version, fileName);
+            File file = new File(filePath);
+            if (!file.exists()) {
+                log.error("File not found: {}", filePath);
+                return null;
+            }
+
+            byte[] fileBytes = Files.readAllBytes(Paths.get(filePath));
+            return new CustomMultipartFile(fileBytes, fileName);
+
+        } catch (IOException e) {
+            log.error("Failed to read file: {}", fileName, e);
+            return null;
+        }
     }
 }
