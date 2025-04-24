@@ -66,6 +66,31 @@ public class PackageController {
                         .body("package.rep is not a valid zip file.");
             }
         }
+        if (file.getOriginalFilename().equals("meta.json")) {
+            try (InputStream is = file.getInputStream()) {
+                JsonNode jsonNode = objectMapper.readTree(is);
+
+                String name = jsonNode.path("name").asText(null);
+                String versionValue = jsonNode.path("version").asText(null);
+                String author = jsonNode.path("author").asText(null);
+
+                if (name == null || name.isBlank() ||
+                        versionValue == null || versionValue.isBlank() ||
+                        author == null || author.isBlank()) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Fields 'name', 'version', and 'author' must not be empty in meta.json.");
+                }
+
+                if (!name.equals(packageName) || !versionValue.equals(version)) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body("Path parameters (packageName and version) do not match meta.json contents.");
+                }
+
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("meta.json is not a valid JSON file.");
+            }
+        }
         log.info("Deploying package: {} version: {}", packageName, version);
         storageService.writeFile(packageName,version,file);
         return new ResponseEntity<>(HttpStatus.CREATED);
