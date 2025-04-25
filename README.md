@@ -26,6 +26,11 @@ Repsy Package Manager is a Spring Boot web application providing REST APIs for d
 3. Start the PostgreSQL container by running:
    ```sh
    docker compose up -d
+4. Navigate to main directory.
+   ```sh
+   cd ../..
+5. Create docker image.
+   ```sh
    docker build -f docker/Dockerfile -t repsy-app:1.0.0 .
 
 
