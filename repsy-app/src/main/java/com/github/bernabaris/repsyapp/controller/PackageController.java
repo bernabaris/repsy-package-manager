@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 @RestController
@@ -109,7 +110,12 @@ public class PackageController {
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
         MultipartFile file = storageService.readFile(packageName,version,fileName);
+        if(file == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("File not found.");
+        }
         ByteArrayResource resource = new ByteArrayResource(file.getBytes());
+
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(file.getSize())
