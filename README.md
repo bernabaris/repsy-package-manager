@@ -13,7 +13,6 @@ Repsy Package Manager is a Spring Boot web application providing REST APIs for d
 - Java 21
 - Maven
 - Docker Desktop
-- PostgreSQL
 
 
 ### Installation
