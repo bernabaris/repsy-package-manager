@@ -1,6 +1,5 @@
 package com.github.bernabaris.repsyapp.controller;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.bernabaris.repsyapp.service.StorageService;
@@ -20,38 +19,40 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
+import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
 @RestController
 @Slf4j
 public class PackageController {
 
-    @Autowired
-    private StorageService storageService;
+    private final StorageService storageService;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
+    public PackageController(@Autowired StorageService storageService,
+                             @Autowired ObjectMapper objectMapper) {
+        this.storageService = storageService;
+        this.objectMapper = objectMapper;
+    }
 
     @PostMapping("/{packageName}/{version}")
     public ResponseEntity<?> deployPackage(@PathVariable String packageName,
                                            @PathVariable String version,
-                                           @RequestParam("file") MultipartFile file) throws IOException {
+                                           @RequestParam("file") MultipartFile file) {
 
-        if (file == null || file.isEmpty()) {
+        if (file == null || file.isEmpty() || file.getOriginalFilename() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Uploaded file is missing or empty.");
         }
         String fileName = file.getOriginalFilename();
 
-        if (!"meta.json".equals(fileName) && !"package.rep".equals(fileName)) {
+        if (!"meta.json".equals(fileName) && !fileName.endsWith(".rep")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Only 'package.rep' or 'meta.json' files are allowed.");
         }
         if (file.getOriginalFilename().equals("meta.json")) {
             try (InputStream is = file.getInputStream()) {
-                JsonNode jsonNode = objectMapper.readTree(is);
+                objectMapper.readTree(is);
             } catch (IOException e) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("meta.json is not a valid JSON file.");
@@ -95,7 +96,10 @@ public class PackageController {
             }
         }
         log.info("Deploying package: {} version: {}", packageName, version);
-        storageService.writeFile(packageName,version,file);
+        boolean success = storageService.writeFile(packageName, version, file);
+        if (!success) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -109,8 +113,8 @@ public class PackageController {
         headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
         headers.add("Pragma", "no-cache");
         headers.add("Expires", "0");
-        MultipartFile file = storageService.readFile(packageName,version,fileName);
-        if(file == null){
+        MultipartFile file = storageService.readFile(packageName, version, fileName);
+        if (file == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("File not found.");
         }
@@ -119,10 +123,9 @@ public class PackageController {
         return ResponseEntity.ok()
                 .headers(headers)
                 .contentLength(file.getSize())
-                .contentType(MediaType.parseMediaType(file.getContentType()))
+                .contentType(MediaType.parseMediaType(Objects.requireNonNull(file.getContentType())))
                 .body(resource);
     }
-
 
 
 }

@@ -26,7 +26,7 @@ public class PackageEntity {
     @Column(name = "file_name")
     private String fileName;
 
-    @Column(name = "data")
-    private byte[] data;
+    @Column(name = "path")
+    private String path;
 
 }
