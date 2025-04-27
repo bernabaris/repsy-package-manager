@@ -6,6 +6,7 @@ services:
     container_name: postgres
     restart: always
     environment:
+      - POSTGRES_DB=repsy-api
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres123
     ports:
