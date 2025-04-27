@@ -33,5 +33,5 @@ Repsy Package Manager is a Spring Boot web application providing REST APIs for d
 5. Build the Docker image:
    ```sh
    docker build -f docker/Dockerfile -t repsy-app:1.0.0 .
-
+   ```
 
