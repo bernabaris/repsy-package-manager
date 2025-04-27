@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgres_db:
     image: postgres:latest
-    container_name: PostgresCont
+    container_name: postgres
     restart: always
     environment:
       - POSTGRES_USER=postgres
@@ -15,11 +15,12 @@ services:
 
   repsy-app:
     image: repsy-app:1.0.0
-    container_name: RepsyAppCont
+    container_name: repsy-app
     restart: always
     ports:
       - '8080:8080'
     environment:
+      - SPRING_PROFILES_ACTIVE=object-storage
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/repsy-api
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres123
