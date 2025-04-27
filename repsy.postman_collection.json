@@ -39,7 +39,19 @@
 			"name": "download",
 			"request": {
 				"method": "GET",
-				"header": []
+				"header": [],
+				"url": {
+					"raw": "localhost:8080/mypackage/1.0.2/meta.json",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"mypackage",
+						"1.0.2",
+						"meta.json"
+					]
+				}
 			},
 			"response": []
 		}
