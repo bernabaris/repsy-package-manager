@@ -1,0 +1,27 @@
+{
+  "name": "mypackage" ,
+  "version": "1.0.2",
+  "author": "John Doe",
+  "dependencies": [
+    {
+      "package": "even",
+      "version": "3.4.7"
+    },
+    {
+      "package": "math",
+      "version": "4.2.8"
+    },
+    {
+      "package": "std",
+      "version": "1.2.0"
+    },
+    {
+      "package": "repsy",
+      "version": "1.0.3"
+    },
+    {
+      "package": "client",
+      "version": "3.3.0"
+    }
+  ]
+}
