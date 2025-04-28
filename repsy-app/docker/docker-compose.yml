@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  minio:
+    image: docker.io/bitnami/minio:2022
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    networks:
+      - minionetwork
+    volumes:
+      - 'minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=mInio12345Wq
+      - MINIO_DEFAULT_BUCKETS=repsy-minio
+
+  postgres_db:
+    image: postgres:latest
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=repsy-api
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres123
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_db:/var/lib/postgresql/data
+    networks:
+      - minionetwork
+
+  repsy-app:
+    image: repsy-app:1.0.0
+    container_name: repsy-app
+    restart: always
+    ports:
+      - '8080:8080'
+    environment:
+      #- STORAGE_STRATEGY=object-storage
+      - STORAGE_STRATEGY=file-system
+      - STORAGE_FS_PATH=/var/data
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/repsy-api
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    depends_on:
+      - postgres_db
+    volumes:
+      - repsy_fs:/var/data
+    networks:
+      - minionetwork
+
+networks:
+  minionetwork:
+    driver: bridge
+
+volumes:
+  minio_data:
+    driver: local
+  postgres_db:
+    driver: local
+  repsy_fs:
+    driver: local
