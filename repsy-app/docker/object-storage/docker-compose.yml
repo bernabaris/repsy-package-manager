@@ -38,7 +38,7 @@ services:
       - '8080:8080'
     environment:
       #- STORAGE_STRATEGY=object-storage
-      - STORAGE_STRATEGY=file-system
+      - STORAGE_STRATEGY=object-storage
       - STORAGE_FS_PATH=/var/data
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/repsy-api
       - SPRING_DATASOURCE_USERNAME=postgres
