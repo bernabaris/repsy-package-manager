@@ -51,6 +51,13 @@ Both docker compose files use same repsy-app docker image.
      ```bash
      docker compose up -d
      ```
+#### Important Note
+Normally, docker compose up command pulls the required images.
+But if you have trouble with pulling images you can pull with sudo. Example:
+
+```bash
+  sudo docker pull repo.repsy.io/bernabaris/repsy/repsy-app:1.0.0
+```
 
 ## API Guideline
 
