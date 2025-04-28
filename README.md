@@ -54,8 +54,6 @@ Both docker compose files use same repsy-app docker image.
 
 ## API Guideline
 
-## API Documentation
-
 The Repsy Package Manager provides a comprehensive API for interacting with Repsy packages. You can explore and test the API using the following resources:
 
 - **Postman Collection**: [repsy.postman_collection.json](repsy.postman_collection.json)  
