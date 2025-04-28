@@ -84,6 +84,7 @@ public class StorageService {
                 packageEntity.setVersion(version);
                 packageEntity.setFileName(file.getOriginalFilename());
                 packageEntity.setPath(path);
+                packageEntity.setStorageType(storageType);
                 packageRepository.save(packageEntity);
             } else {
                 path = packageEntity.getPath();
