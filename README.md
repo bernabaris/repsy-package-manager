@@ -13,13 +13,16 @@ It follows REST best practices and ensures robust input validation.
 
 ### Prerequisites
 
-- Java 21
+- Docker
+
+#### For Development
+
+- Java 21 
 - Maven
-- Docker Desktop
 
 ---
 
-## Installation
+## Setup and Test
 
 1. Clone the repository:
 
@@ -32,50 +35,52 @@ It follows REST best practices and ensures robust input validation.
    - **For File System Storage:**
 
      ```bash
-     cd repsy-package-manager/repsy-app/docker/repsy-app
+     cd repsy-package-manager/repsy-app/docker/file-system
      ```
 
    - **For Object Storage:**
 
      ```bash
-     cd repsy-package-manager/repsy-app/docker/minio
+     cd repsy-package-manager/repsy-app/docker/object-storage
      ```
+   
+Both docker compose files use same repsy-app docker image.
 
 3. Start related containers using Docker Compose:
 
-   - **If using File System Storage:**
-
      ```bash
      docker compose up -d
      ```
 
-   - **If using Object Storage:**
+## API Guideline
 
-     ```bash
-     # Start MinIO
-     docker compose up -d
+## API Documentation
 
-     # Then start repsy-app
-     cd ../repsy-app
-     docker compose up -d
-     ```
+The Repsy Package Manager provides a comprehensive API for interacting with Repsy packages. You can explore and test the API using the following resources:
 
-4. Go back to the main project directory:
+- **Postman Collection**: [repsy.postman_collection.json](repsy.postman_collection.json)  
+  Import this collection into Postman to easily test and interact with the API.
 
-    ```bash
-    cd ../../../..
-    ```
+- **OpenAPI Documentation**: [openapi_doc.json](openapi_doc.json)  
+  Use this OpenAPI specification to integrate the API with your applications or tools.
 
-5. Build the Docker image:
 
-    ```bash
-    docker build -f docker/Dockerfile -t repsy-app:1.0.0 .
-    ```
 
----
 
-## Important Notes
+## For Development
 
-- If you are using **File System Storage**, only the `repsy-app` container needs to be up.
-- If you are using **Object Storage**, you must first run the `minio` container and then the `repsy-app`.
-- `MinIO` is **only required** for Object Storage setup.
+1. *File System Storage Library*
+   ```bash
+   cd file-system-storage
+   mvn clean deploy
+   ```
+2. *Object Storage Library*
+   ```bash
+   cd object-storage
+   mvn clean deploy
+   ```
+3. *Repsy App*
+   ```bash
+   cd repsy-app
+   ./docker_build_and_push.sh
+   ```
