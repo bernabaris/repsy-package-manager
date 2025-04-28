@@ -3,6 +3,7 @@ package com.github.bernabaris.repsyapp.service;
 import com.github.bernabaris.filesystemstorage.FileSystemStorage;
 import com.github.bernabaris.objectstorage.ObjectStorage;
 import com.github.bernabaris.repsyapp.entity.PackageEntity;
+import com.github.bernabaris.repsyapp.entity.StorageType;
 import com.github.bernabaris.repsyapp.repository.PackageRepository;
 import com.github.bernabaris.repsyapp.util.CustomMultipartFile;
 import jakarta.annotation.PostConstruct;
@@ -29,7 +30,7 @@ public class StorageService {
     @Value("${storage.strategy}")
     private String storageStrategy;
 
-    private boolean fileSystemEnabled;
+    private StorageType storageType;
 
     private static final String REPO_FOLDER_NAME = "repository";
 
@@ -51,11 +52,11 @@ public class StorageService {
     @PostConstruct
     public void init() {
         if (Objects.equals(storageStrategy, "file-system")) {
-            fileSystemEnabled = true;
+            storageType = StorageType.FILE_SYSTEM;
             fileSystemStorage = new FileSystemStorage();
             log.info("File-System enabled.");
         } else {
-            fileSystemEnabled = false;
+            storageType = StorageType.OBJECT_STORAGE;
             objectStorage = new ObjectStorage(minioEndpoint, minioUser, minioPassword, minioBucketName);
             log.info("Object-Storage enabled.");
         }
@@ -65,12 +66,16 @@ public class StorageService {
     public boolean writeFile(String packageName, String version, MultipartFile file) {
         String path;
         try {
-            PackageEntity packageEntity = packageRepository.getPackage(packageName, version, file.getOriginalFilename());
-            if (fileSystemEnabled) {
-                path = String.format("%s/%s/%s/%s/%s",
+            PackageEntity packageEntity = packageRepository.getPackage(packageName, version, file.getOriginalFilename(),
+                    storageType);
+            switch (storageType) {
+                case FILE_SYSTEM -> path = String.format("%s/%s/%s/%s/%s",
                         storageDirectory, REPO_FOLDER_NAME, packageName, version, file.getOriginalFilename());
-            } else {
-                path = String.format("%s/%s/%s", packageName, version, file.getOriginalFilename());
+                case OBJECT_STORAGE ->  path = String.format("%s/%s/%s", packageName, version, file.getOriginalFilename());
+                default -> {
+                    log.error("Unhandled storage type: {}",storageType);
+                    return false;
+                }
             }
             if (packageEntity == null) {
                 // new file creation
@@ -83,10 +88,13 @@ public class StorageService {
             } else {
                 path = packageEntity.getPath();
             }
-            if (fileSystemEnabled) {
-                fileSystemStorage.writeFile(path, file.getBytes());
-            } else {
-                objectStorage.storeFile(path, file.getInputStream());
+            switch (storageType) {
+                case FILE_SYSTEM -> fileSystemStorage.writeFile(path, file.getBytes());
+                case OBJECT_STORAGE -> objectStorage.storeFile(path, file.getInputStream());
+                default -> {
+                    log.error("Unhandled storage type: {}",storageType);
+                    return false;
+                }
             }
         } catch (Exception e) {
             log.error("Error occurred while writing file {}", file.getOriginalFilename(), e);
@@ -96,17 +104,22 @@ public class StorageService {
     }
 
     public MultipartFile readFile(String packageName, String version, String fileName) {
-        PackageEntity packageEntity = packageRepository.getPackage(packageName, version, fileName);
+        PackageEntity packageEntity = packageRepository.getPackage(packageName, version, fileName,storageType);
         if (packageEntity == null) {
             return null;
         }
         byte[] fileBytes;
         try {
-            if (fileSystemEnabled) {
-                fileBytes = fileSystemStorage.readFile(packageEntity.getPath());
-            } else {
-                InputStream is = objectStorage.retrieveFile(packageEntity.getPath());
-                fileBytes = is.readAllBytes();
+            switch (storageType) {
+                case FILE_SYSTEM -> fileBytes = fileSystemStorage.readFile(packageEntity.getPath());
+                case OBJECT_STORAGE -> {
+                    InputStream is = objectStorage.retrieveFile(packageEntity.getPath());
+                    fileBytes = is.readAllBytes();
+                }
+                default -> {
+                    log.error("Unhandled storage type: {}",storageType);
+                    return null;
+                }
             }
             return new CustomMultipartFile(fileBytes, fileName);
         } catch (Exception e) {
