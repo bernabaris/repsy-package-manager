@@ -15,7 +15,7 @@ services:
       - postgres_db:/var/lib/postgresql/data
 
   repsy-app:
-    image: repsy-app:1.0.0
+    image: repo.repsy.io/bernabaris/repsy/repsy-app:1.0.0
     container_name: repsy-app
     restart: always
     ports:
